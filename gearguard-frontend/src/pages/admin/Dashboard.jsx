@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Wrench, ClipboardList, Shield, UserPlus, Settings, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Users, Wrench, ClipboardList, Shield, UserPlus, Settings, Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
 function AdminDashboard() {
@@ -9,6 +10,7 @@ function AdminDashboard() {
     const [showCreateUser, setShowCreateUser] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -18,11 +20,45 @@ function AdminDashboard() {
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
 
-    const stats = [
-        { title: 'Total Users', value: 12, icon: Users, gradient: 'from-blue-500 to-blue-700' },
-        { title: 'Equipment', value: 47, icon: Wrench, gradient: 'from-green-500 to-emerald-600' },
-        { title: 'Active Requests', value: 23, icon: ClipboardList, gradient: 'from-amber-500 to-orange-600' },
-        { title: 'Teams', value: 4, icon: Shield, gradient: 'from-purple-500 to-purple-700' }
+    // Real stats from API
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        totalEquipment: 0,
+        activeRequests: 0,
+        totalTeams: 0
+    });
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    const fetchStats = async () => {
+        try {
+            const [dashboardRes, usersRes, teamsRes, equipmentRes] = await Promise.all([
+                api.get('/dashboard'),
+                api.get('/auth/users'),
+                api.get('/teams'),
+                api.get('/equipment')
+            ]);
+
+            setStats({
+                totalUsers: usersRes.data?.length || 0,
+                totalEquipment: dashboardRes.data?.totalEquipment || equipmentRes.data?.length || 0,
+                activeRequests: dashboardRes.data?.activeRequests || 0,
+                totalTeams: teamsRes.data?.length || 0
+            });
+        } catch (error) {
+            console.error('Failed to load stats', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const statCards = [
+        { title: 'Total Users', value: stats.totalUsers, icon: Users, gradient: 'from-blue-500 to-blue-700' },
+        { title: 'Equipment', value: stats.totalEquipment, icon: Wrench, gradient: 'from-green-500 to-emerald-600' },
+        { title: 'Active Requests', value: stats.activeRequests, icon: ClipboardList, gradient: 'from-amber-500 to-orange-600' },
+        { title: 'Teams', value: stats.totalTeams, icon: Shield, gradient: 'from-purple-500 to-purple-700' }
     ];
 
     const validateField = (name, value) => {
@@ -85,6 +121,7 @@ function AdminDashboard() {
             setFormData({ fullName: '', email: '', password: '', role: 'USER' });
             setErrors({});
             setTouched({});
+            fetchStats(); // Refresh stats after creating user
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to create user');
         } finally {
@@ -114,17 +151,18 @@ function AdminDashboard() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
                     <p className="text-gray-500 dark:text-slate-400 mt-1">Welcome back, {user?.fullName}</p>
                 </div>
-                <button
-                    onClick={() => setShowCreateUser(true)}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <UserPlus className="w-4 h-4" />
-                    Create User
-                </button>
+                <div className="flex items-center gap-3">
+                    <button onClick={fetchStats} className="btn-secondary flex items-center gap-2">
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+                    </button>
+                    <button onClick={() => setShowCreateUser(true)} className="btn-primary flex items-center gap-2">
+                        <UserPlus className="w-4 h-4" /> Create User
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
+                {statCards.map((stat, index) => (
                     <motion.div
                         key={stat.title}
                         initial={{ opacity: 0, y: 20 }}
@@ -135,7 +173,7 @@ function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-white/80 text-sm">{stat.title}</p>
-                                <p className="text-4xl font-bold mt-2">{stat.value}</p>
+                                <p className="text-4xl font-bold mt-2">{loading ? '...' : stat.value}</p>
                             </div>
                             <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
                                 <stat.icon className="w-7 h-7" />
@@ -181,7 +219,7 @@ function AdminDashboard() {
                         </div>
                         <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
                             <span className="text-gray-600 dark:text-slate-300">Active Sessions</span>
-                            <span className="font-medium text-gray-900 dark:text-white">3</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{stats.totalUsers}</span>
                         </div>
                     </div>
                 </div>
