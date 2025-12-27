@@ -65,8 +65,8 @@ public class AuthController {
     public ResponseEntity<AuthResponse> createUser(@Valid @RequestBody SignupRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
-            User currentUser = userRepository.findByUsername(username)
+            String email = auth.getName(); // Principal is now email
+            User currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             AuthResponse response = authService.createUser(request, currentUser.getRole());
@@ -81,8 +81,8 @@ public class AuthController {
     public ResponseEntity<UserDTO> getCurrentUser() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth.getName();
-            User user = userRepository.findByUsername(username)
+            String email = auth.getName(); // Principal is now email
+            User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             UserDTO dto = UserDTO.builder()
