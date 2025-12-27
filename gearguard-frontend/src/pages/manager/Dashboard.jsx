@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Users, ClipboardList, Calendar, UserPlus, TrendingUp, Clock } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 function ManagerDashboard() {
     const { user } = useAuth();

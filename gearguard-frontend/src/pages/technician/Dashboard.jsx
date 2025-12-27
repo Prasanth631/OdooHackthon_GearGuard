@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ClipboardList, CheckCircle, Clock, Wrench, AlertTriangle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 function TechnicianDashboard() {
     const { user } = useAuth();
