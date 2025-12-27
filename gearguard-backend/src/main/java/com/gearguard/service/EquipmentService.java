@@ -11,8 +11,11 @@ import com.gearguard.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,13 +61,17 @@ public class EquipmentService {
     }
 
     public EquipmentDTO createEquipment(CreateEquipmentRequest request) {
-        if (equipmentRepository.existsBySerialNumber(request.getSerialNumber())) {
+        // Auto-generate serial number if not provided
+        String serialNumber = request.getSerialNumber();
+        if (serialNumber == null || serialNumber.trim().isEmpty()) {
+            serialNumber = generateSerialNumber();
+        } else if (equipmentRepository.existsBySerialNumber(serialNumber)) {
             throw new RuntimeException("Equipment with this serial number already exists");
         }
 
         Equipment equipment = Equipment.builder()
                 .name(request.getName())
-                .serialNumber(request.getSerialNumber())
+                .serialNumber(serialNumber)
                 .category(request.getCategory())
                 .purchaseDate(request.getPurchaseDate())
                 .warrantyExpiry(request.getWarrantyExpiry())
@@ -179,6 +186,23 @@ public class EquipmentService {
         return Arrays.stream(EquipmentStatus.values())
                 .map(Enum::name)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Generates a unique serial number in format: EQ-YYYYMMDD-XXXXX
+     */
+    private String generateSerialNumber() {
+        String dateStr = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String randomStr = UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+        String serialNumber = "EQ-" + dateStr + "-" + randomStr;
+
+        // Ensure uniqueness
+        while (equipmentRepository.existsBySerialNumber(serialNumber)) {
+            randomStr = UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+            serialNumber = "EQ-" + dateStr + "-" + randomStr;
+        }
+
+        return serialNumber;
     }
 
     private EquipmentDTO toDTO(Equipment equipment) {

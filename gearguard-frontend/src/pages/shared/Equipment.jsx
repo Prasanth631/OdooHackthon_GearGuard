@@ -370,13 +370,13 @@ function Equipment() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="form-label">Serial Number</label>
+                                    <label className="form-label">Serial Number <span className="text-xs text-gray-400">(auto-generated if empty)</span></label>
                                     <input
                                         type="text"
                                         value={formData.serialNumber}
                                         onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
                                         className="input-field"
-                                        required
+                                        placeholder="Leave empty to auto-generate"
                                     />
                                 </div>
                                 <div>
