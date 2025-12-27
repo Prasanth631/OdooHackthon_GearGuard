@@ -161,4 +161,63 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserDTO> updateProfile(@RequestBody Map<String, Object> updates) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Update allowed fields
+            if (updates.containsKey("fullName")) {
+                user.setFullName((String) updates.get("fullName"));
+            }
+            if (updates.containsKey("phone")) {
+                user.setPhone((String) updates.get("phone"));
+            }
+            if (updates.containsKey("avatarUrl")) {
+                user.setAvatarUrl((String) updates.get("avatarUrl"));
+            }
+
+            userRepository.save(user);
+
+            UserDTO dto = UserDTO.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .avatarUrl(user.getAvatarUrl())
+                    .phone(user.getPhone())
+                    .active(user.getActive())
+                    .build();
+
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, String>> changePassword(@RequestBody Map<String, String> request) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = auth.getName();
+
+            String currentPassword = request.get("currentPassword");
+            String newPassword = request.get("newPassword");
+
+            authService.changeCurrentUserPassword(email, currentPassword, newPassword);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password changed successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

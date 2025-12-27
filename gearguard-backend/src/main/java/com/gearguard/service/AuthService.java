@@ -250,4 +250,18 @@ public class AuthService {
         // Cleanup expired tokens
         otpTokenRepository.deleteExpiredTokens(LocalDateTime.now());
     }
+
+    public void changeCurrentUserPassword(String email, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

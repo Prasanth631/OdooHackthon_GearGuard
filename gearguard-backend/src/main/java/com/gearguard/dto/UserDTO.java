@@ -18,5 +18,6 @@ public class UserDTO {
     private String email;
     private UserRole role;
     private String avatarUrl;
+    private String phone;
     private Boolean active;
 }
