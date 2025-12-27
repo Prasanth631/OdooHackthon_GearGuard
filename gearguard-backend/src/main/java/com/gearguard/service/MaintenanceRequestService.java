@@ -34,6 +34,9 @@ public class MaintenanceRequestService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public List<MaintenanceRequestDTO> getAllRequests() {
         return requestRepository.findAllForKanban().stream()
                 .map(this::toDTO)
@@ -80,6 +83,11 @@ public class MaintenanceRequestService {
         }
 
         requestRepository.save(request);
+
+        // Log the creation
+        auditLogService.log("CREATE", "Request", request.getId(),
+                "Created request: " + request.getSubject() + " (" + request.getPriority() + ")");
+
         return toDTO(request);
     }
 
@@ -119,6 +127,11 @@ public class MaintenanceRequestService {
         }
 
         requestRepository.save(request);
+
+        // Log the update
+        auditLogService.log("UPDATE", "Request", request.getId(),
+                "Updated request: " + request.getSubject());
+
         return toDTO(request);
     }
 
@@ -127,6 +140,7 @@ public class MaintenanceRequestService {
         MaintenanceRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
+        RequestStage oldStage = request.getStage();
         request.setStage(newStage);
 
         // Mark completed if repaired
@@ -139,6 +153,11 @@ public class MaintenanceRequestService {
         }
 
         requestRepository.save(request);
+
+        // Log the stage change
+        auditLogService.log("UPDATE", "Request", request.getId(),
+                "Stage changed: " + oldStage + " → " + newStage + " for: " + request.getSubject());
+
         return toDTO(request);
     }
 
@@ -146,7 +165,12 @@ public class MaintenanceRequestService {
     public void deleteRequest(Long id) {
         MaintenanceRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        String requestSubject = request.getSubject();
         requestRepository.delete(request);
+
+        // Log the deletion
+        auditLogService.log("DELETE", "Request", id, "Deleted request: " + requestSubject);
     }
 
     public List<MaintenanceRequestDTO> getRequestsByStage(RequestStage stage) {

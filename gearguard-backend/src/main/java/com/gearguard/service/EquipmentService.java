@@ -30,6 +30,9 @@ public class EquipmentService {
     @Autowired
     private MaintenanceTeamRepository maintenanceTeamRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public List<EquipmentDTO> getAllEquipment() {
         return equipmentRepository.findAll().stream()
                 .map(this::toDTO)
@@ -92,6 +95,11 @@ public class EquipmentService {
         }
 
         Equipment saved = equipmentRepository.save(equipment);
+
+        // Log the creation
+        auditLogService.log("CREATE", "Equipment", saved.getId(),
+                "Created equipment: " + saved.getName() + " (S/N: " + saved.getSerialNumber() + ")");
+
         return toDTO(saved);
     }
 
@@ -142,14 +150,24 @@ public class EquipmentService {
         }
 
         Equipment saved = equipmentRepository.save(equipment);
+
+        // Log the update
+        auditLogService.log("UPDATE", "Equipment", saved.getId(),
+                "Updated equipment: " + saved.getName());
+
         return toDTO(saved);
     }
 
     public void deleteEquipment(Long id) {
-        if (!equipmentRepository.existsById(id)) {
-            throw new RuntimeException("Equipment not found");
-        }
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Equipment not found"));
+
+        String equipmentName = equipment.getName();
         equipmentRepository.deleteById(id);
+
+        // Log the deletion
+        auditLogService.log("DELETE", "Equipment", id,
+                "Deleted equipment: " + equipmentName);
     }
 
     public List<String> getCategories() {

@@ -33,6 +33,9 @@ public class TeamService {
     @Autowired
     private MaintenanceRequestRepository requestRepository;
 
+    @Autowired
+    private AuditLogService auditLogService;
+
     public List<TeamDTO> getAllTeams() {
         return teamRepository.findAllWithMembers().stream()
                 .map(this::toTeamDTO)
@@ -58,6 +61,10 @@ public class TeamService {
                 .build();
 
         teamRepository.save(team);
+
+        // Log the creation
+        auditLogService.log("CREATE", "Team", team.getId(), "Created team: " + team.getName());
+
         return toTeamDTO(team);
     }
 
@@ -77,6 +84,10 @@ public class TeamService {
         }
 
         teamRepository.save(team);
+
+        // Log the update
+        auditLogService.log("UPDATE", "Team", team.getId(), "Updated team: " + team.getName());
+
         return toTeamDTO(team);
     }
 
@@ -84,6 +95,8 @@ public class TeamService {
     public void deleteTeam(Long id) {
         MaintenanceTeam team = teamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        String teamName = team.getName();
 
         // Unassign all requests from this team before deleting
         var requests = requestRepository.findByAssignedTeamId(id);
@@ -97,6 +110,9 @@ public class TeamService {
 
         // Now delete the team
         teamRepository.delete(team);
+
+        // Log the deletion
+        auditLogService.log("DELETE", "Team", id, "Deleted team: " + teamName);
     }
 
     public List<TeamMemberDTO> getTeamMembers(Long teamId) {
