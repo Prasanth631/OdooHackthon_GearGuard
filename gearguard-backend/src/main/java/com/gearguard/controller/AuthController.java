@@ -1,9 +1,12 @@
 package com.gearguard.controller;
 
 import com.gearguard.dto.AuthResponse;
+import com.gearguard.dto.ForgotPasswordRequest;
 import com.gearguard.dto.LoginRequest;
+import com.gearguard.dto.ResetPasswordRequest;
 import com.gearguard.dto.SignupRequest;
 import com.gearguard.dto.UserDTO;
+import com.gearguard.dto.VerifyOtpRequest;
 import com.gearguard.model.User;
 import com.gearguard.model.enums.UserRole;
 import com.gearguard.repository.UserRepository;
@@ -111,5 +114,51 @@ public class AuthController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<UserDTO>> getUsersByRole(@PathVariable UserRole role) {
         return ResponseEntity.ok(authService.getUsersByRole(role));
+    }
+
+    // Forgot Password Endpoints
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.sendPasswordResetOtp(request.getEmail());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "OTP sent successfully to your email");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Map<String, Object>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        try {
+            boolean valid = authService.verifyOtp(request.getEmail(), request.getOtp());
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", valid);
+            response.put("message", "OTP verified successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password reset successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }

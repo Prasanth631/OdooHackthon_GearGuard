@@ -4,8 +4,10 @@ import com.gearguard.dto.AuthResponse;
 import com.gearguard.dto.LoginRequest;
 import com.gearguard.dto.SignupRequest;
 import com.gearguard.dto.UserDTO;
+import com.gearguard.model.OtpToken;
 import com.gearguard.model.User;
 import com.gearguard.model.enums.UserRole;
+import com.gearguard.repository.OtpTokenRepository;
 import com.gearguard.repository.UserRepository;
 import com.gearguard.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +29,12 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
+    private OtpTokenRepository otpTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -31,6 +42,8 @@ public class AuthService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
@@ -169,5 +182,72 @@ public class AuthService {
                 .avatarUrl(user.getAvatarUrl())
                 .active(user.getActive())
                 .build();
+    }
+
+    // Forgot Password Methods
+
+    private String generateOtp() {
+        int otp = 100000 + secureRandom.nextInt(900000);
+        return String.valueOf(otp);
+    }
+
+    @Transactional
+    public void sendPasswordResetOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("No account found with this email address"));
+
+        // Delete any existing OTPs for this email
+        otpTokenRepository.deleteByEmail(email);
+
+        // Generate new OTP
+        String otp = generateOtp();
+
+        // Create OTP token (expires in 10 minutes)
+        OtpToken otpToken = OtpToken.builder()
+                .email(email)
+                .otp(otp)
+                .expiresAt(LocalDateTime.now().plusMinutes(10))
+                .used(false)
+                .build();
+
+        otpTokenRepository.save(otpToken);
+
+        // Send OTP via email
+        emailService.sendOtpEmail(email, otp);
+    }
+
+    public boolean verifyOtp(String email, String otp) {
+        OtpToken otpToken = otpTokenRepository.findByEmailAndOtpAndUsedFalse(email, otp)
+                .orElseThrow(() -> new RuntimeException("Invalid OTP"));
+
+        if (otpToken.isExpired()) {
+            throw new RuntimeException("OTP has expired. Please request a new one.");
+        }
+
+        return true;
+    }
+
+    @Transactional
+    public void resetPassword(String email, String otp, String newPassword) {
+        OtpToken otpToken = otpTokenRepository.findByEmailAndOtpAndUsedFalse(email, otp)
+                .orElseThrow(() -> new RuntimeException("Invalid OTP"));
+
+        if (otpToken.isExpired()) {
+            throw new RuntimeException("OTP has expired. Please request a new one.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Mark OTP as used
+        otpToken.setUsed(true);
+        otpTokenRepository.save(otpToken);
+
+        // Cleanup expired tokens
+        otpTokenRepository.deleteExpiredTokens(LocalDateTime.now());
     }
 }

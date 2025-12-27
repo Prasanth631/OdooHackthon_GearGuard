@@ -70,5 +70,8 @@ export const dashboardApi = {
 export const authApi = {
     login: (credentials) => api.post('/auth/login', credentials),
     register: (data) => api.post('/auth/register', data),
-    getCurrentUser: () => api.get('/auth/me')
+    getCurrentUser: () => api.get('/auth/me'),
+    forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+    verifyOtp: (email, otp) => api.post('/auth/verify-otp', { email, otp }),
+    resetPassword: (email, otp, newPassword) => api.post('/auth/reset-password', { email, otp, newPassword })
 };
