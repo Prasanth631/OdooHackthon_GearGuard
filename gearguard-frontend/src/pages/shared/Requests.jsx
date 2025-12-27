@@ -130,6 +130,22 @@ function Requests() {
         });
     };
 
+    // Auto-fill team when equipment is selected (Flow 1: The Breakdown requirement)
+    const handleEquipmentChange = (e) => {
+        const equipmentId = e.target.value;
+        setFormData(prev => ({ ...prev, equipmentId }));
+
+        // Find the selected equipment and auto-fill the team
+        const selectedEquipment = equipment.find(eq => eq.id.toString() === equipmentId);
+        if (selectedEquipment && selectedEquipment.maintenanceTeamId) {
+            setFormData(prev => ({
+                ...prev,
+                equipmentId,
+                assignedTeamId: selectedEquipment.maintenanceTeamId.toString()
+            }));
+        }
+    };
+
     const resetForm = () => {
         setEditingRequest(null);
         setFormData({
@@ -255,7 +271,7 @@ function Requests() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Equipment *</label>
-                                    <select value={formData.equipmentId} onChange={(e) => setFormData({ ...formData, equipmentId: e.target.value })} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl" required>
+                                    <select value={formData.equipmentId} onChange={handleEquipmentChange} className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl" required>
                                         <option value="">Select...</option>
                                         {equipment.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                     </select>

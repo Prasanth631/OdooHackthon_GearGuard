@@ -143,10 +143,24 @@ public class MaintenanceRequestService {
         RequestStage oldStage = request.getStage();
         request.setStage(newStage);
 
-        // Mark completed if repaired
+        // Mark completed if repaired or scrapped
         if (newStage == RequestStage.REPAIRED || newStage == RequestStage.SCRAP) {
             request.setCompletedAt(LocalDateTime.now());
             request.setIsOverdue(false);
+
+            // SCRAP LOGIC: Mark equipment as inactive when scrapped
+            if (newStage == RequestStage.SCRAP && request.getEquipment() != null) {
+                Equipment equipment = request.getEquipment();
+                equipment.setStatus(com.gearguard.model.enums.EquipmentStatus.INACTIVE);
+                equipment.setNotes((equipment.getNotes() != null ? equipment.getNotes() + "\n" : "")
+                        + "[SCRAPPED] " + LocalDateTime.now().toLocalDate() + " - Request #" + request.getId() + ": "
+                        + request.getSubject());
+                equipmentRepository.save(equipment);
+
+                // Log the scrap action
+                auditLogService.log("UPDATE", "Equipment", equipment.getId(),
+                        "Equipment marked as INACTIVE due to scrap - Request #" + request.getId());
+            }
         } else {
             request.setCompletedAt(null);
             request.updateOverdueStatus();
