@@ -12,10 +12,15 @@ function Equipment() {
     const [statusFilter, setStatusFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [categories, setCategories] = useState([]);
+    const [departments, setDepartments] = useState([]);
+    const [teams, setTeams] = useState([]);
+    const [users, setUsers] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingEquipment, setEditingEquipment] = useState(null);
     const [showQRModal, setShowQRModal] = useState(false);
     const [qrData, setQrData] = useState({ id: null, name: '', imageUrl: null });
+    const [customCategory, setCustomCategory] = useState('');
+    const [showCustomCategory, setShowCustomCategory] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         serialNumber: '',
@@ -23,12 +28,18 @@ function Equipment() {
         location: '',
         status: 'ACTIVE',
         healthScore: 100,
-        notes: ''
+        notes: '',
+        departmentId: '',
+        maintenanceTeamId: '',
+        assignedToId: ''
     });
 
     useEffect(() => {
         fetchEquipment();
         fetchCategories();
+        fetchDepartments();
+        fetchTeams();
+        fetchUsers();
     }, [statusFilter, categoryFilter]);
 
     const fetchEquipment = async () => {
@@ -55,14 +66,48 @@ function Equipment() {
         }
     };
 
+    const fetchDepartments = async () => {
+        try {
+            const response = await api.get('/departments');
+            setDepartments(response.data);
+        } catch (error) {
+            console.error('Failed to load departments');
+        }
+    };
+
+    const fetchTeams = async () => {
+        try {
+            const response = await api.get('/teams');
+            setTeams(response.data);
+        } catch (error) {
+            console.error('Failed to load teams');
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const response = await api.get('/auth/users');
+            setUsers(response.data.filter(u => u.role === 'TECHNICIAN' || u.role === 'USER'));
+        } catch (error) {
+            console.error('Failed to load users');
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const submitData = {
+                ...formData,
+                departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
+                maintenanceTeamId: formData.maintenanceTeamId ? parseInt(formData.maintenanceTeamId) : null,
+                assignedToId: formData.assignedToId ? parseInt(formData.assignedToId) : null
+            };
+
             if (editingEquipment) {
-                await equipmentApi.update(editingEquipment.id, formData);
+                await equipmentApi.update(editingEquipment.id, submitData);
                 toast.success('Equipment updated');
             } else {
-                await equipmentApi.create(formData);
+                await equipmentApi.create(submitData);
                 toast.success('Equipment created');
             }
             setShowModal(false);
@@ -82,7 +127,10 @@ function Equipment() {
             location: item.location || '',
             status: item.status,
             healthScore: item.healthScore,
-            notes: item.notes || ''
+            notes: item.notes || '',
+            departmentId: item.departmentId || '',
+            maintenanceTeamId: item.maintenanceTeamId || '',
+            assignedToId: item.assignedToId || ''
         });
         setShowModal(true);
     };
@@ -129,6 +177,8 @@ function Equipment() {
 
     const resetForm = () => {
         setEditingEquipment(null);
+        setCustomCategory('');
+        setShowCustomCategory(false);
         setFormData({
             name: '',
             serialNumber: '',
@@ -136,7 +186,10 @@ function Equipment() {
             location: '',
             status: 'ACTIVE',
             healthScore: 100,
-            notes: ''
+            notes: '',
+            departmentId: '',
+            maintenanceTeamId: '',
+            assignedToId: ''
         });
     };
 
@@ -328,13 +381,88 @@ function Equipment() {
                                 </div>
                                 <div>
                                     <label className="form-label">Category</label>
+                                    {!showCustomCategory ? (
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={formData.category}
+                                                onChange={(e) => {
+                                                    if (e.target.value === '__custom__') {
+                                                        setShowCustomCategory(true);
+                                                    } else {
+                                                        setFormData({ ...formData, category: e.target.value });
+                                                    }
+                                                }}
+                                                className="input-field flex-1"
+                                            >
+                                                <option value="">Select category</option>
+                                                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                <option value="__custom__">+ Add Custom</option>
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={customCategory}
+                                                onChange={(e) => setCustomCategory(e.target.value)}
+                                                placeholder="Enter custom category"
+                                                className="input-field flex-1"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (customCategory.trim()) {
+                                                        setFormData({ ...formData, category: customCategory.trim() });
+                                                        setCategories([...categories, customCategory.trim()]);
+                                                        setShowCustomCategory(false);
+                                                        setCustomCategory('');
+                                                    }
+                                                }}
+                                                className="px-3 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+                                            >
+                                                Add
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setShowCustomCategory(false); setCustomCategory(''); }}
+                                                className="px-3 py-2 bg-gray-200 dark:bg-slate-700 rounded-lg"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="form-label">Department</label>
                                     <select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        value={formData.departmentId}
+                                        onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
                                         className="input-field"
                                     >
-                                        <option value="">Select category</option>
-                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                        <option value="">Select department</option>
+                                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="form-label">Maintenance Team</label>
+                                    <select
+                                        value={formData.maintenanceTeamId}
+                                        onChange={(e) => setFormData({ ...formData, maintenanceTeamId: e.target.value })}
+                                        className="input-field"
+                                    >
+                                        <option value="">Select team</option>
+                                        {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="form-label">Assigned To</label>
+                                    <select
+                                        value={formData.assignedToId}
+                                        onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
+                                        className="input-field"
+                                    >
+                                        <option value="">Select employee</option>
+                                        {users.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
                                     </select>
                                 </div>
                                 <div>
