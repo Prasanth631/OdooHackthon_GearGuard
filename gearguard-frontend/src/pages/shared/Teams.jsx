@@ -148,12 +148,12 @@ function Teams() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="page-title">Maintenance Teams</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Maintenance Teams</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Manage teams and members</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex items-center gap-3">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
@@ -164,7 +164,7 @@ function Teams() {
                             className="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                     </div>
-                    <button onClick={() => { setEditingTeam(null); setFormData({ name: '', description: '', color: '#3B82F6' }); setShowModal(true); }} className="btn-primary flex items-center gap-2">
+                    <button onClick={() => { setEditingTeam(null); setFormData({ name: '', description: '', color: '#3B82F6' }); setShowModal(true); }} className="btn-primary flex items-center gap-2 whitespace-nowrap">
                         <Plus className="w-4 h-4" /> Create Team
                     </button>
                 </div>
