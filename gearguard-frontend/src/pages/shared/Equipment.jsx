@@ -1,140 +1,359 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, Wrench, MapPin, ClipboardList, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Wrench, Edit2, Trash2, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
+import toast from 'react-hot-toast';
+import equipmentApi from '../../api/equipmentApi';
 
 function Equipment() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('all');
-
-    const equipment = [
-        { id: 1, name: 'CNC Machine Alpha', serialNumber: 'CNC-2024-001', category: 'Machinery', department: 'Production', location: 'Building A, Floor 1', status: 'ACTIVE', healthScore: 85, team: 'Mechanics', openRequests: 2 },
-        { id: 2, name: '3D Printer Pro', serialNumber: 'PRT-2024-002', category: 'Machinery', department: 'Production', location: 'Building A, Floor 2', status: 'ACTIVE', healthScore: 92, team: 'Mechanics', openRequests: 0 },
-        { id: 3, name: 'Main Server Rack', serialNumber: 'SRV-2024-001', category: 'IT Equipment', department: 'IT', location: 'Server Room', status: 'ACTIVE', healthScore: 98, team: 'IT Support', openRequests: 1 },
-        { id: 4, name: 'Forklift #3', serialNumber: 'FLT-2024-003', category: 'Vehicle', department: 'Logistics', location: 'Warehouse B', status: 'MAINTENANCE', healthScore: 45, team: 'Mechanics', openRequests: 3 },
-        { id: 5, name: 'Office Printer HP', serialNumber: 'OPR-2024-001', category: 'Office Equipment', department: 'Administration', location: 'Admin Block', status: 'ACTIVE', healthScore: 60, team: 'IT Support', openRequests: 1 },
-    ];
-
-    const categories = ['all', ...new Set(equipment.map(e => e.category))];
-
-    const filteredEquipment = equipment.filter(e => {
-        const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase()) || e.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || e.category === selectedCategory;
-        return matchesSearch && matchesCategory;
+    const [equipment, setEquipment] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [categories, setCategories] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [editingEquipment, setEditingEquipment] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        serialNumber: '',
+        category: '',
+        location: '',
+        status: 'ACTIVE',
+        healthScore: 100,
+        notes: ''
     });
 
-    const getHealthColor = (score) => {
-        if (score >= 80) return 'text-green-500 bg-green-100 dark:bg-green-900/30';
-        if (score >= 50) return 'text-amber-500 bg-amber-100 dark:bg-amber-900/30';
-        return 'text-red-500 bg-red-100 dark:bg-red-900/30';
-    };
+    useEffect(() => {
+        fetchEquipment();
+        fetchCategories();
+    }, [statusFilter, categoryFilter]);
 
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'ACTIVE': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-            case 'MAINTENANCE': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-            case 'INACTIVE': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
-            case 'SCRAPPED': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-            default: return 'bg-gray-100 text-gray-700';
+    const fetchEquipment = async () => {
+        try {
+            setLoading(true);
+            const params = {};
+            if (statusFilter) params.status = statusFilter;
+            if (categoryFilter) params.category = categoryFilter;
+            const response = await equipmentApi.getAll(params);
+            setEquipment(response.data);
+        } catch (error) {
+            toast.error('Failed to load equipment');
+        } finally {
+            setLoading(false);
         }
     };
+
+    const fetchCategories = async () => {
+        try {
+            const response = await equipmentApi.getCategories();
+            setCategories(response.data);
+        } catch (error) {
+            setCategories(['Machinery', 'IT Equipment', 'Vehicles', 'Office Equipment', 'HVAC', 'Electrical']);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (editingEquipment) {
+                await equipmentApi.update(editingEquipment.id, formData);
+                toast.success('Equipment updated');
+            } else {
+                await equipmentApi.create(formData);
+                toast.success('Equipment created');
+            }
+            setShowModal(false);
+            resetForm();
+            fetchEquipment();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Operation failed');
+        }
+    };
+
+    const handleEdit = (item) => {
+        setEditingEquipment(item);
+        setFormData({
+            name: item.name,
+            serialNumber: item.serialNumber,
+            category: item.category || '',
+            location: item.location || '',
+            status: item.status,
+            healthScore: item.healthScore,
+            notes: item.notes || ''
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Delete this equipment?')) return;
+        try {
+            await equipmentApi.delete(id);
+            toast.success('Equipment deleted');
+            fetchEquipment();
+        } catch (error) {
+            toast.error('Failed to delete');
+        }
+    };
+
+    const resetForm = () => {
+        setEditingEquipment(null);
+        setFormData({
+            name: '',
+            serialNumber: '',
+            category: '',
+            location: '',
+            status: 'ACTIVE',
+            healthScore: 100,
+            notes: ''
+        });
+    };
+
+    const openCreateModal = () => {
+        resetForm();
+        setShowModal(true);
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            ACTIVE: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+            MAINTENANCE: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+            INACTIVE: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+            SCRAPPED: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+        };
+        return colors[status] || colors.ACTIVE;
+    };
+
+    const getHealthColor = (score) => {
+        if (score >= 80) return 'text-green-500';
+        if (score >= 50) return 'text-amber-500';
+        return 'text-red-500';
+    };
+
+    const filteredEquipment = equipment.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="page-title">Equipment</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage and track all your company assets</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Equipment</h1>
+                    <p className="text-gray-500 dark:text-slate-400 mt-1">Manage your equipment inventory</p>
                 </div>
-                <button className="btn-primary flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add Equipment
+                <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
+                    <Plus className="w-4 h-4" /> Add Equipment
                 </button>
             </div>
 
             <div className="card">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input type="text" placeholder="Search by name or serial number..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="input-field pl-10" />
+                        <input
+                            type="text"
+                            placeholder="Search by name or serial..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="input-field pl-10"
+                        />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-gray-400" />
-                        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="input-field w-48">
-                            {categories.map(cat => (<option key={cat} value={cat}>{cat === 'all' ? 'All Categories' : cat}</option>))}
-                        </select>
-                    </div>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="input-field w-full md:w-40"
+                    >
+                        <option value="">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                        <option value="INACTIVE">Inactive</option>
+                        <option value="SCRAPPED">Scrapped</option>
+                    </select>
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="input-field w-full md:w-40"
+                    >
+                        <option value="">All Categories</option>
+                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
                 </div>
-            </div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-gray-200 dark:border-gray-700">
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Equipment</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Category</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Location</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Health</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Status</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Maintenance</th>
-                                <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredEquipment.map((item, index) => (
-                                <motion.tr key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
-                                                <Wrench className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600"></div>
+                    </div>
+                ) : filteredEquipment.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-slate-400">
+                        <Wrench className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No equipment found</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-gray-200 dark:border-slate-700">
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Name</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Serial</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Category</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Location</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Health</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-white">Status</th>
+                                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-white">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredEquipment.map((item, index) => (
+                                    <motion.tr
+                                        key={item.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className="border-b border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                    >
+                                        <td className="py-3 px-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                                                    <Wrench className="w-5 h-5 text-primary-600" />
+                                                </div>
+                                                <span className="font-medium text-gray-900 dark:text-white">{item.name}</span>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">{item.serialNumber}</p>
+                                        </td>
+                                        <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.serialNumber}</td>
+                                        <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.category || '-'}</td>
+                                        <td className="py-3 px-4 text-gray-600 dark:text-slate-400">{item.location || '-'}</td>
+                                        <td className="py-3 px-4">
+                                            <span className={`font-semibold ${getHealthColor(item.healthScore)}`}>
+                                                {item.healthScore}%
+                                            </span>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <span className={`badge ${getStatusColor(item.status)}`}>{item.status}</span>
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button onClick={() => handleEdit(item)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                                                    <Edit2 className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+                                                </button>
+                                                <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                                </button>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4"><span className="text-sm text-gray-600 dark:text-gray-300">{item.category}</span></td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                            <MapPin className="w-4 h-4 text-gray-400" />{item.location}
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                                <div className={`h-full rounded-full ${item.healthScore >= 80 ? 'bg-green-500' : item.healthScore >= 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${item.healthScore}%` }} />
-                                            </div>
-                                            <span className={`text-sm font-medium px-2 py-0.5 rounded ${getHealthColor(item.healthScore)}`}>{item.healthScore}%</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4"><span className={`badge ${getStatusStyle(item.status)}`}>{item.status}</span></td>
-                                    <td className="py-4 px-4">
-                                        <button className="relative flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                                            <ClipboardList className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                            <span className="text-sm text-gray-700 dark:text-gray-300">Requests</span>
-                                            {item.openRequests > 0 && (<span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">{item.openRequests}</span>)}
-                                        </button>
-                                    </td>
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Eye className="w-4 h-4 text-gray-500" /></button>
-                                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><Edit className="w-4 h-4 text-gray-500" /></button>
-                                            <button className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg"><Trash2 className="w-4 h-4 text-red-500" /></button>
-                                        </div>
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                {filteredEquipment.length === 0 && (
-                    <div className="text-center py-12">
-                        <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500 dark:text-gray-400">No equipment found</p>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
-            </motion.div>
+            </div>
+
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-lg shadow-xl border dark:border-slate-800 max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                {editingEquipment ? 'Edit Equipment' : 'Add Equipment'}
+                            </h2>
+                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <label className="form-label">Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="input-field"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label">Serial Number</label>
+                                    <input
+                                        type="text"
+                                        value={formData.serialNumber}
+                                        onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                                        className="input-field"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label">Category</label>
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="input-field"
+                                    >
+                                        <option value="">Select category</option>
+                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="form-label">Location</label>
+                                    <input
+                                        type="text"
+                                        value={formData.location}
+                                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                        className="input-field"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="form-label">Status</label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                        className="input-field"
+                                    >
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="MAINTENANCE">Maintenance</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                        <option value="SCRAPPED">Scrapped</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="form-label">Health Score: {formData.healthScore}%</label>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="100"
+                                        value={formData.healthScore}
+                                        onChange={(e) => setFormData({ ...formData, healthScore: parseInt(e.target.value) })}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="form-label">Notes</label>
+                                    <textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                        className="input-field"
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">
+                                    Cancel
+                                </button>
+                                <button type="submit" className="btn-primary flex-1">
+                                    {editingEquipment ? 'Update' : 'Create'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }
