@@ -1,10 +1,12 @@
 import { Sun, Moon, Bell, Search, Menu, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getInitials } from '../../utils';
 
 function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
 
@@ -89,8 +91,14 @@ function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
                                 <p className="font-medium text-gray-900 dark:text-white">{user?.fullName}</p>
                                 <p className="text-xs text-gray-500 dark:text-slate-500">{user?.role}</p>
                             </div>
-                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-3">
-                                <Settings className="w-4 h-4" /> Settings
+                            <button
+                                onClick={() => {
+                                    navigate(`/${user?.role?.toLowerCase()}/profile`);
+                                    setShowProfile(false);
+                                }}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-3"
+                            >
+                                <Settings className="w-4 h-4" /> My Profile
                             </button>
                             <button onClick={logout} className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3">
                                 <LogOut className="w-4 h-4" /> Logout

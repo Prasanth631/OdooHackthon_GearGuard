@@ -16,6 +16,7 @@ import Equipment from './pages/shared/Equipment';
 import Teams from './pages/shared/Teams';
 import Requests from './pages/shared/Requests';
 import Calendar from './pages/shared/Calendar';
+import Profile from './pages/shared/Profile';
 
 function AppContent() {
     const { isAuthenticated, user, loading } = useAuth();
@@ -86,6 +87,7 @@ function AppContent() {
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
+                                        <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
                             </div>
@@ -106,6 +108,7 @@ function AppContent() {
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
+                                        <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
                             </div>
@@ -124,6 +127,7 @@ function AppContent() {
                                         <Route path="dashboard" element={<TechnicianDashboard />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
+                                        <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
                             </div>
@@ -140,6 +144,7 @@ function AppContent() {
                                 <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-slate-900">
                                     <Routes>
                                         <Route path="dashboard" element={<UserDashboard />} />
+                                        <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
                             </div>
