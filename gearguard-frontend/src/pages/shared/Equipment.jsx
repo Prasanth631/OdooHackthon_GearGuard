@@ -14,6 +14,8 @@ function Equipment() {
     const [categories, setCategories] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [editingEquipment, setEditingEquipment] = useState(null);
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [qrData, setQrData] = useState({ id: null, name: '', imageUrl: null });
     const [formData, setFormData] = useState({
         name: '',
         serialNumber: '',
@@ -96,13 +98,25 @@ function Equipment() {
         }
     };
 
-    const handleDownloadQR = async (id, name) => {
+    const handleShowQR = async (id, name) => {
         try {
-            const response = await api.get(`/qrcode/equipment/${id}/download`, { responseType: 'blob' });
+            const response = await api.get(`/qrcode/equipment/${id}`, { responseType: 'blob' });
+            const imageUrl = window.URL.createObjectURL(new Blob([response.data]));
+            setQrData({ id, name, imageUrl });
+            setShowQRModal(true);
+        } catch (error) {
+            toast.error('Failed to load QR code');
+        }
+    };
+
+    const handleDownloadQR = async () => {
+        if (!qrData.id) return;
+        try {
+            const response = await api.get(`/qrcode/equipment/${qrData.id}/download`, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `${name}_qr.png`);
+            link.setAttribute('download', `${qrData.name}_qr.png`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -251,9 +265,9 @@ function Equipment() {
                                         <td className="py-3 px-4">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    onClick={() => handleDownloadQR(item.id, item.name)}
+                                                    onClick={() => handleShowQR(item.id, item.name)}
                                                     className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                    title="Download QR Code"
+                                                    title="View QR Code"
                                                 >
                                                     <QrCode className="w-4 h-4 text-blue-600" />
                                                 </button>
@@ -376,6 +390,43 @@ function Equipment() {
                                 </button>
                             </div>
                         </form>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* QR Code Modal */}
+            {showQRModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowQRModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-sm shadow-xl border dark:border-slate-800"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">QR Code</h2>
+                            <button onClick={() => setShowQRModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="text-center">
+                            <p className="text-gray-600 dark:text-slate-400 mb-4">{qrData.name}</p>
+                            {qrData.imageUrl && (
+                                <div className="bg-white p-4 rounded-xl inline-block mb-4">
+                                    <img src={qrData.imageUrl} alt="QR Code" className="w-48 h-48 mx-auto" />
+                                </div>
+                            )}
+                            <p className="text-sm text-gray-500 dark:text-slate-500 mb-4">
+                                Scan this QR code to view equipment details
+                            </p>
+                            <button
+                                onClick={handleDownloadQR}
+                                className="btn-primary w-full flex items-center justify-center gap-2"
+                            >
+                                <Download className="w-4 h-4" /> Download QR Code
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             )}
