@@ -16,4 +16,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
     boolean existsByTeamIdAndUserId(Long teamId, Long userId);
 
     List<TeamMember> findByTeamIdAndIsLeadTrue(Long teamId);
+
+    void deleteByTeamId(Long teamId);
 }

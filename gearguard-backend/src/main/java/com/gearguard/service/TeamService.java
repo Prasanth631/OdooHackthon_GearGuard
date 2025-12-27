@@ -84,6 +84,18 @@ public class TeamService {
     public void deleteTeam(Long id) {
         MaintenanceTeam team = teamRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        // Unassign all requests from this team before deleting
+        var requests = requestRepository.findByAssignedTeamId(id);
+        for (var request : requests) {
+            request.setAssignedTeam(null);
+            requestRepository.save(request);
+        }
+
+        // Remove all team members first
+        memberRepository.deleteByTeamId(id);
+
+        // Now delete the team
         teamRepository.delete(team);
     }
 
