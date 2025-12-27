@@ -39,7 +39,8 @@ public class AuthService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getEmail(), request.getPassword()));
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getId());
+        // Generate token with EMAIL as subject (not username)
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
         return AuthResponse.builder()
                 .token(token)
@@ -81,7 +82,8 @@ public class AuthService {
 
         userRepository.save(admin);
 
-        String token = jwtUtil.generateToken(admin.getUsername(), admin.getRole().name(), admin.getId());
+        // Generate token with EMAIL as subject
+        String token = jwtUtil.generateToken(admin.getEmail(), admin.getRole().name(), admin.getId());
 
         return AuthResponse.builder()
                 .token(token)
