@@ -87,7 +87,7 @@ function Equipment() {
     const fetchUsers = async () => {
         try {
             const response = await api.get('/auth/users');
-            setUsers(response.data.filter(u => u.role === 'TECHNICIAN' || u.role === 'USER'));
+            setUsers(response.data);  // Show all users for assignment
         } catch (error) {
             console.error('Failed to load users');
         }
