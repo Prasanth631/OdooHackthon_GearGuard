@@ -2,7 +2,7 @@ package com.gearguard.service;
 
 import com.gearguard.model.MaintenanceRequest;
 import com.gearguard.model.User;
-import com.gearguard.model.enums.Role;
+import com.gearguard.model.enums.UserRole;
 import com.gearguard.repository.MaintenanceRequestRepository;
 import com.gearguard.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +64,7 @@ public class EmailNotificationService {
             return;
 
         List<User> managers = userRepository.findAll().stream()
-                .filter(u -> u.getRole() == Role.ADMIN || u.getRole() == Role.MANAGER)
+                .filter(u -> u.getRole() == UserRole.ADMIN || u.getRole() == UserRole.MANAGER)
                 .collect(Collectors.toList());
 
         for (User manager : managers) {
@@ -92,7 +92,7 @@ public class EmailNotificationService {
 
         // Send to managers
         List<User> managers = userRepository.findAll().stream()
-                .filter(u -> u.getRole() == Role.ADMIN || u.getRole() == Role.MANAGER)
+                .filter(u -> u.getRole() == UserRole.ADMIN || u.getRole() == UserRole.MANAGER)
                 .collect(Collectors.toList());
 
         for (User manager : managers) {
@@ -107,7 +107,7 @@ public class EmailNotificationService {
 
         // Send to each technician their assigned tasks
         List<User> technicians = userRepository.findAll().stream()
-                .filter(u -> u.getRole() == Role.TECHNICIAN)
+                .filter(u -> u.getRole() == UserRole.TECHNICIAN)
                 .collect(Collectors.toList());
 
         for (User tech : technicians) {
