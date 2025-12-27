@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, Wrench, Edit2, Trash2, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Plus, Search, Filter, Wrench, Edit2, Trash2, Eye, EyeOff, AlertCircle, CheckCircle, X, QrCode, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import equipmentApi from '../../api/equipmentApi';
+import api from '../../api/axios';
 
 function Equipment() {
     const [equipment, setEquipment] = useState([]);
@@ -92,6 +93,23 @@ function Equipment() {
             fetchEquipment();
         } catch (error) {
             toast.error('Failed to delete');
+        }
+    };
+
+    const handleDownloadQR = async (id, name) => {
+        try {
+            const response = await api.get(`/qrcode/equipment/${id}/download`, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${name}_qr.png`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('QR code downloaded!');
+        } catch (error) {
+            toast.error('Failed to download QR code');
         }
     };
 
@@ -232,6 +250,13 @@ function Equipment() {
                                         </td>
                                         <td className="py-3 px-4">
                                             <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleDownloadQR(item.id, item.name)}
+                                                    className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    title="Download QR Code"
+                                                >
+                                                    <QrCode className="w-4 h-4 text-blue-600" />
+                                                </button>
                                                 <button onClick={() => handleEdit(item)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
                                                     <Edit2 className="w-4 h-4 text-gray-600 dark:text-slate-400" />
                                                 </button>
