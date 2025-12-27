@@ -1,22 +1,14 @@
-import { Sun, Moon, Bell, Search, Menu, LogOut, Settings } from 'lucide-react';
+import { Sun, Moon, Search, Menu, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getInitials } from '../../utils';
+import NotificationDropdown from '../common/NotificationDropdown';
 
 function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [showNotifications, setShowNotifications] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
-
-    const notifications = [
-        { id: 1, message: 'New maintenance request submitted', time: '5 min ago', unread: true },
-        { id: 2, message: 'CNC Machine repair completed', time: '1 hour ago', unread: true },
-        { id: 3, message: 'Scheduled maintenance tomorrow', time: '2 hours ago', unread: false },
-    ];
-
-    const unreadCount = notifications.filter(n => n.unread).length;
 
     return (
         <header className="h-16 bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-6 shadow-sm">
@@ -46,32 +38,8 @@ function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
                     )}
                 </button>
 
-                <div className="relative">
-                    <button
-                        onClick={() => setShowNotifications(!showNotifications)}
-                        className="p-2 rounded-xl bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-800 transition-all relative border border-transparent dark:border-slate-800"
-                    >
-                        <Bell className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-                        {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
-                                {unreadCount}
-                            </span>
-                        )}
-                    </button>
-                    {showNotifications && (
-                        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-200 dark:border-slate-800 py-2 z-50 animate-slide-down">
-                            <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-800">
-                                <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                            </div>
-                            {notifications.map((notif) => (
-                                <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer ${notif.unread ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}>
-                                    <p className="text-sm text-gray-900 dark:text-gray-100">{notif.message}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">{notif.time}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                {/* Real-time Notification Dropdown */}
+                <NotificationDropdown />
 
                 <div className="relative">
                     <button

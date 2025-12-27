@@ -73,4 +73,47 @@ public class EmailService {
             throw new RuntimeException("Failed to send OTP email. Please try again later.");
         }
     }
+
+    public void sendNotificationEmail(String toEmail, String title, String message) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            helper.setFrom(senderEmail, senderName);
+            helper.setTo(toEmail);
+            helper.setSubject("GearGuard - " + title);
+
+            String htmlContent = """
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+                            <h1 style="color: white; margin: 0; font-size: 28px;">GearGuard</h1>
+                            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Maintenance Tracker Notification</p>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef; border-top: none;">
+                            <h2 style="color: #333; margin-top: 0;">"""
+                    + title + """
+                            </h2>
+                            <p style="color: #666; line-height: 1.6;">""" + message
+                    + """
+                                    </p>
+                                    <div style="margin-top: 25px;">
+                                        <a href="http://localhost:5173" style="background: #667eea; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; display: inline-block;">
+                                            View in GearGuard
+                                        </a>
+                                    </div>
+                                    <hr style="border: none; border-top: 1px solid #e9ecef; margin: 25px 0;">
+                                    <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+                                        2025 GearGuard. All rights reserved.
+                                    </p>
+                                </div>
+                            </div>
+                            """;
+
+            helper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
+            logger.info("Notification email sent to: {}", toEmail);
+        } catch (Exception e) {
+            logger.error("Failed to send notification email to: {} - Error: {}", toEmail, e.getMessage());
+        }
+    }
 }
