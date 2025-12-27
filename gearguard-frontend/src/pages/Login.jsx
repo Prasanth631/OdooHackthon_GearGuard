@@ -290,7 +290,7 @@ function Login() {
                     </div>
 
                     <p className="mt-6 text-center text-sm text-slate-600">
-                        © 2024 GearGuard. Built for Odoo Hackathon.
+                        © 2025 GearGuard. Built for Odoo Hackathon.
                     </p>
                 </motion.div>
             </div>

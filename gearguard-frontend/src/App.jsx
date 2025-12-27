@@ -17,6 +17,7 @@ import Teams from './pages/shared/Teams';
 import Requests from './pages/shared/Requests';
 import Calendar from './pages/shared/Calendar';
 import Profile from './pages/shared/Profile';
+import Departments from './pages/shared/Departments';
 
 function AppContent() {
     const { isAuthenticated, user, loading } = useAuth();
@@ -84,6 +85,7 @@ function AppContent() {
                                     <Routes>
                                         <Route path="dashboard" element={<AdminDashboard />} />
                                         <Route path="equipment" element={<Equipment />} />
+                                        <Route path="departments" element={<Departments />} />
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
@@ -105,6 +107,7 @@ function AppContent() {
                                     <Routes>
                                         <Route path="dashboard" element={<ManagerDashboard />} />
                                         <Route path="equipment" element={<Equipment />} />
+                                        <Route path="departments" element={<Departments />} />
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
