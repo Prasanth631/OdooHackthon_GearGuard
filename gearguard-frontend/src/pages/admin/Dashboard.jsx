@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Wrench, ClipboardList, Shield, UserPlus, Settings, Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Users, Wrench, ClipboardList, Shield, UserPlus, Settings, Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw, QrCode } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
 function AdminDashboard() {
     const { user, createUser } = useAuth();
+    const navigate = useNavigate();
     const [showCreateUser, setShowCreateUser] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,21 +189,33 @@ function AdminDashboard() {
                 <div className="card">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
                     <div className="grid grid-cols-2 gap-4">
-                        <button className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left">
+                        <button
+                            onClick={() => setShowCreateUser(true)}
+                            className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left"
+                        >
                             <Users className="w-6 h-6 text-primary-600 mb-2" />
                             <p className="font-medium text-gray-900 dark:text-white">Manage Users</p>
                         </button>
-                        <button className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left">
+                        <button
+                            onClick={() => navigate('/admin/teams')}
+                            className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left"
+                        >
                             <Shield className="w-6 h-6 text-primary-600 mb-2" />
                             <p className="font-medium text-gray-900 dark:text-white">Manage Teams</p>
                         </button>
-                        <button className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left">
+                        <button
+                            onClick={() => navigate('/admin/equipment')}
+                            className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left"
+                        >
                             <Wrench className="w-6 h-6 text-primary-600 mb-2" />
                             <p className="font-medium text-gray-900 dark:text-white">Equipment</p>
                         </button>
-                        <button className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left">
+                        <button
+                            onClick={() => navigate('/admin/audit-logs')}
+                            className="p-4 bg-gray-50 dark:bg-slate-800 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left"
+                        >
                             <Settings className="w-6 h-6 text-primary-600 mb-2" />
-                            <p className="font-medium text-gray-900 dark:text-white">Settings</p>
+                            <p className="font-medium text-gray-900 dark:text-white">Audit Logs</p>
                         </button>
                     </div>
                 </div>
