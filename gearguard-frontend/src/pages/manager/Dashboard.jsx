@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, ClipboardList, Calendar, UserPlus, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Users, ClipboardList, Calendar, UserPlus, Clock, RefreshCw, AlertTriangle, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 function ManagerDashboard() {
     const { user } = useAuth();
@@ -15,6 +16,14 @@ function ManagerDashboard() {
     });
     const [teamPerformance, setTeamPerformance] = useState([]);
     const [todaySchedule, setTodaySchedule] = useState([]);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        password: '',
+        role: 'TECHNICIAN'
+    });
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -70,6 +79,22 @@ function ManagerDashboard() {
         }
     };
 
+    const handleAddTechnician = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            await api.post('/auth/create-user', formData);
+            toast.success('Technician added successfully!');
+            setShowAddModal(false);
+            setFormData({ fullName: '', email: '', password: '', role: 'TECHNICIAN' });
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to add technician');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const statCards = [
         { title: 'Team Members', value: stats.teamMembers, icon: Users, gradient: 'from-blue-500 to-blue-700' },
         { title: 'Open Requests', value: stats.openRequests, icon: ClipboardList, gradient: 'from-amber-500 to-orange-600' },
@@ -88,7 +113,7 @@ function ManagerDashboard() {
                     <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
                     </button>
-                    <button className="btn-primary flex items-center gap-2">
+                    <button onClick={() => setShowAddModal(true)} className="btn-primary flex items-center gap-2">
                         <UserPlus className="w-4 h-4" /> Add Technician
                     </button>
                 </div>
@@ -169,6 +194,82 @@ function ManagerDashboard() {
                     )}
                 </div>
             </div>
+
+            {/* Add Technician Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowAddModal(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-md shadow-xl border dark:border-slate-800"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add Technician</h2>
+                            <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddTechnician} className="space-y-4">
+                            <div>
+                                <label className="form-label">Full Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.fullName}
+                                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                    className="input-field"
+                                    placeholder="Enter full name"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="form-label">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="input-field"
+                                    placeholder="technician@company.com"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="form-label">Password</label>
+                                <input
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    className="input-field"
+                                    placeholder="Create password"
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+                            <div>
+                                <label className="form-label">Role</label>
+                                <select
+                                    value={formData.role}
+                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                    className="input-field"
+                                >
+                                    <option value="TECHNICIAN">Technician</option>
+                                    <option value="USER">User</option>
+                                </select>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary flex-1">
+                                    Cancel
+                                </button>
+                                <button type="submit" disabled={submitting} className="btn-primary flex-1">
+                                    {submitting ? 'Adding...' : 'Add Technician'}
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }
