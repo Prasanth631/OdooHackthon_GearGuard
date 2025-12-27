@@ -67,4 +67,9 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
 
         @Query("SELECT COUNT(r) FROM MaintenanceRequest r WHERE r.completedAt IS NOT NULL AND r.completedAt >= :startOfDay")
         Long countCompletedToday(@Param("startOfDay") LocalDateTime startOfDay);
+
+        // Team statistics
+        int countByMaintenanceTeamIdAndStageNot(Long teamId, RequestStage stage);
+
+        int countByMaintenanceTeamIdAndStage(Long teamId, RequestStage stage);
 }
