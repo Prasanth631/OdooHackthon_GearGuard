@@ -1,0 +1,33 @@
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+    const { isAuthenticated, user, loading } = useAuth();
+    const location = useLocation();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (allowedRoles && !allowedRoles.includes(user?.role)) {
+        const dashboardRoutes = {
+            ADMIN: '/admin/dashboard',
+            MANAGER: '/manager/dashboard',
+            TECHNICIAN: '/technician/dashboard',
+            USER: '/user/dashboard'
+        };
+        return <Navigate to={dashboardRoutes[user?.role] || '/login'} replace />;
+    }
+
+    return children;
+};
+
+export default ProtectedRoute;
