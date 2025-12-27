@@ -8,6 +8,7 @@ import Navbar from './components/layout/Navbar';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import AdminDashboard from './pages/admin/Dashboard';
 import AuditLogs from './pages/admin/AuditLogs';
 import ManagerDashboard from './pages/manager/Dashboard';
@@ -76,6 +77,8 @@ function AppContent() {
                 <Route path="/login" element={
                     isAuthenticated ? <Navigate to={getDashboardRoute()} replace /> : <Login />
                 } />
+
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 <Route path="/admin/*" element={
                     <ProtectedRoute allowedRoles={['ADMIN']}>
