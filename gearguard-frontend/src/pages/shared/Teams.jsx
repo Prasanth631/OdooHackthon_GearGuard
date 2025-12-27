@@ -4,6 +4,7 @@ import { Plus, Users, UserPlus, Edit, ChevronDown, ChevronUp, Trash2, X, Crown, 
 import { teamApi } from '../../api/teamApi';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 function Teams() {
     const [teams, setTeams] = useState([]);
@@ -17,6 +18,9 @@ function Teams() {
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ name: '', description: '', color: '#3B82F6' });
     const [memberUserId, setMemberUserId] = useState('');
+
+    // Confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: () => { } });
 
     const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
 
@@ -70,15 +74,21 @@ function Teams() {
         setShowModal(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this team?')) return;
-        try {
-            await teamApi.delete(id);
-            toast.success('Team deleted successfully');
-            fetchTeams();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to delete team');
-        }
+    const handleDelete = (id) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Delete Team',
+            message: 'Are you sure you want to delete this team? All members will be removed from the team.',
+            onConfirm: async () => {
+                try {
+                    await teamApi.delete(id);
+                    toast.success('Team deleted successfully');
+                    fetchTeams();
+                } catch (error) {
+                    toast.error(error.response?.data?.message || 'Failed to delete team');
+                }
+            }
+        });
     };
 
     const handleAddMember = async (e) => {
@@ -94,15 +104,21 @@ function Teams() {
         }
     };
 
-    const handleRemoveMember = async (teamId, memberId) => {
-        if (!confirm('Remove this member from the team?')) return;
-        try {
-            await teamApi.removeMember(teamId, memberId);
-            toast.success('Member removed');
-            fetchTeams();
-        } catch (error) {
-            toast.error('Failed to remove member');
-        }
+    const handleRemoveMember = (teamId, memberId, memberName) => {
+        setConfirmDialog({
+            isOpen: true,
+            title: 'Remove Member',
+            message: `Are you sure you want to remove ${memberName} from this team?`,
+            onConfirm: async () => {
+                try {
+                    await teamApi.removeMember(teamId, memberId);
+                    toast.success('Member removed');
+                    fetchTeams();
+                } catch (error) {
+                    toast.error('Failed to remove member');
+                }
+            }
+        });
     };
 
     const handleSetLead = async (teamId, memberId) => {
@@ -224,7 +240,7 @@ function Teams() {
                                                     <Crown className="w-4 h-4" />
                                                 </button>
                                             )}
-                                            <button onClick={() => handleRemoveMember(team.id, member.memberId)} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-500" title="Remove">
+                                            <button onClick={() => handleRemoveMember(team.id, member.memberId, member.fullName)} className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-500" title="Remove">
                                                 <X className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -301,6 +317,16 @@ function Teams() {
                     </motion.div>
                 </div>
             )}
+
+            {/* Custom Confirm Dialog */}
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                onConfirm={confirmDialog.onConfirm}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                type="danger"
+            />
         </div>
     );
 }
