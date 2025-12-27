@@ -18,8 +18,7 @@ public class CreateEquipmentRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank(message = "Serial number is required")
-    private String serialNumber;
+    private String serialNumber; // Optional - auto-generated if empty
 
     private String category;
     private Long departmentId;

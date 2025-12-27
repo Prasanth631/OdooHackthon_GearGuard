@@ -370,14 +370,27 @@ function Equipment() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="form-label">Serial Number <span className="text-xs text-gray-400">(auto-generated if empty)</span></label>
-                                    <input
-                                        type="text"
-                                        value={formData.serialNumber}
-                                        onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                                        className="input-field"
-                                        placeholder="Leave empty to auto-generate"
-                                    />
+                                    <label className="form-label">Serial Number <span className="text-xs text-gray-400">(optional)</span></label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={formData.serialNumber}
+                                            onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                                            className="input-field flex-1"
+                                            placeholder="Leave empty or click Generate"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                                                const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+                                                setFormData({ ...formData, serialNumber: `EQ-${date}-${rand}` });
+                                            }}
+                                            className="px-3 py-2 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 text-sm font-medium"
+                                        >
+                                            Generate
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="form-label">Category</label>
