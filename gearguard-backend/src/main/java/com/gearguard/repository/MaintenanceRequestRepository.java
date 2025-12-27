@@ -69,7 +69,7 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
         Long countCompletedToday(@Param("startOfDay") LocalDateTime startOfDay);
 
         // Team statistics
-        int countByMaintenanceTeamIdAndStageNot(Long teamId, RequestStage stage);
+        int countByAssignedTeamIdAndStageNot(Long teamId, RequestStage stage);
 
-        int countByMaintenanceTeamIdAndStage(Long teamId, RequestStage stage);
+        int countByAssignedTeamIdAndStage(Long teamId, RequestStage stage);
 }

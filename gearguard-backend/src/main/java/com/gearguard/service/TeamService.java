@@ -166,9 +166,9 @@ public class TeamService {
         int requestsCount = 0;
         int completedCount = 0;
         try {
-            requestsCount = requestRepository.countByMaintenanceTeamIdAndStageNot(team.getId(),
+            requestsCount = requestRepository.countByAssignedTeamIdAndStageNot(team.getId(),
                     com.gearguard.model.enums.RequestStage.REPAIRED);
-            completedCount = requestRepository.countByMaintenanceTeamIdAndStage(team.getId(),
+            completedCount = requestRepository.countByAssignedTeamIdAndStage(team.getId(),
                     com.gearguard.model.enums.RequestStage.REPAIRED);
         } catch (Exception e) {
             // Repository methods may not exist yet
