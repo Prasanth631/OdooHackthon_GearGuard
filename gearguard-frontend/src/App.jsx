@@ -18,6 +18,7 @@ import Requests from './pages/shared/Requests';
 import Calendar from './pages/shared/Calendar';
 import Profile from './pages/shared/Profile';
 import Departments from './pages/shared/Departments';
+import Reports from './pages/shared/Reports';
 
 function AppContent() {
     const { isAuthenticated, user, loading } = useAuth();
@@ -89,6 +90,7 @@ function AppContent() {
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
+                                        <Route path="reports" element={<Reports />} />
                                         <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
@@ -111,6 +113,7 @@ function AppContent() {
                                         <Route path="teams" element={<Teams />} />
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
+                                        <Route path="reports" element={<Reports />} />
                                         <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>
