@@ -37,7 +37,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
 
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(user.getEmail(), request.getPassword()));
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name(), user.getId());
 
