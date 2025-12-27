@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, Wrench, Users, ClipboardList, Calendar,
-    ChevronLeft, ChevronRight, Settings, LogOut
+    ChevronLeft, ChevronRight, LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -84,7 +84,7 @@ function Sidebar({ isOpen, onToggle, userRole }) {
                 )}
                 <button
                     onClick={logout}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200`}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
                 >
                     <LogOut className={`w-5 h-5 ${isOpen ? '' : 'mx-auto'}`} />
                     {isOpen && <span>Logout</span>}

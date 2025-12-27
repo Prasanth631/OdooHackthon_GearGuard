@@ -3,19 +3,19 @@ import { Toaster } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
-import Sidebar from './components/common/Sidebar';
-import Navbar from './components/common/Navbar';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import Sidebar from './components/layout/Sidebar';
+import Navbar from './components/layout/Navbar';
+import ProtectedRoute from './components/layout/ProtectedRoute';
 
 import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import TechnicianDashboard from './pages/TechnicianDashboard';
-import UserDashboard from './pages/UserDashboard';
-import Equipment from './pages/Equipment';
-import Teams from './pages/Teams';
-import Requests from './pages/Requests';
-import Calendar from './pages/Calendar';
+import AdminDashboard from './pages/admin/Dashboard';
+import ManagerDashboard from './pages/manager/Dashboard';
+import TechnicianDashboard from './pages/technician/Dashboard';
+import UserDashboard from './pages/user/Dashboard';
+import Equipment from './pages/shared/Equipment';
+import Teams from './pages/shared/Teams';
+import Requests from './pages/shared/Requests';
+import Calendar from './pages/shared/Calendar';
 
 function AppContent() {
     const { isAuthenticated, user, loading } = useAuth();

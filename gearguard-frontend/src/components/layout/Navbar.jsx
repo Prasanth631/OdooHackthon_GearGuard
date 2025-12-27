@@ -1,6 +1,7 @@
-import { Sun, Moon, Bell, Search, Menu, User, LogOut, Settings } from 'lucide-react';
+import { Sun, Moon, Bell, Search, Menu, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getInitials } from '../../utils';
 
 function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
     const { user, logout } = useAuth();
@@ -14,11 +15,6 @@ function Navbar({ darkMode, onToggleDarkMode, onToggleSidebar }) {
     ];
 
     const unreadCount = notifications.filter(n => n.unread).length;
-
-    const getInitials = (name) => {
-        if (!name) return 'U';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    };
 
     return (
         <header className="h-16 bg-white dark:bg-slate-950 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-6 shadow-sm">
