@@ -21,16 +21,14 @@ public class QRCodeService {
     private String frontendUrl;
 
     public byte[] generateEquipmentQRCode(Long equipmentId, int width, int height) {
-        String content = frontendUrl + "/equipment/" + equipmentId;
+        String content = frontendUrl + "/admin/equipment?id=" + equipmentId;
         return generateQRCode(content, width, height);
     }
 
     public byte[] generateEquipmentQRCodeWithDetails(Long equipmentId, String name, String serialNumber, int width,
             int height) {
-        // JSON-like content for scanning
-        String content = String.format(
-                "GEARGUARD:EQ|ID:%d|NAME:%s|SN:%s|URL:%s/equipment/%d",
-                equipmentId, name, serialNumber != null ? serialNumber : "", frontendUrl, equipmentId);
+        // Simple URL format that opens in browser when scanned
+        String content = frontendUrl + "/admin/equipment?id=" + equipmentId;
         return generateQRCode(content, width, height);
     }
 
