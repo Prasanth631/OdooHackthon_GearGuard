@@ -9,7 +9,12 @@ import com.lowagie.text.Font;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -105,10 +110,10 @@ public class ReportService {
             headerStyle.setBorderBottom(BorderStyle.THIN);
 
             // Header row
-            Row headerRow = sheet.createRow(0);
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             String[] headers = { "ID", "Name", "Serial Number", "Location", "Category", "Status", "Purchase Date" };
             for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
             }
@@ -116,7 +121,7 @@ public class ReportService {
             // Data rows
             int rowNum = 1;
             for (Equipment eq : equipment) {
-                Row row = sheet.createRow(rowNum++);
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(eq.getId());
                 row.createCell(1).setCellValue(eq.getName());
                 row.createCell(2).setCellValue(eq.getSerialNumber() != null ? eq.getSerialNumber() : "");
@@ -223,11 +228,11 @@ public class ReportService {
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
             // Header row
-            Row headerRow = sheet.createRow(0);
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             String[] headers = { "ID", "Subject", "Description", "Equipment", "Type", "Priority", "Status",
                     "Assigned Team", "Assigned To", "Scheduled Date", "Created At" };
             for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
             }
@@ -235,7 +240,7 @@ public class ReportService {
             // Data rows
             int rowNum = 1;
             for (MaintenanceRequest req : requests) {
-                Row row = sheet.createRow(rowNum++);
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(req.getId());
                 row.createCell(1).setCellValue(req.getSubject() != null ? req.getSubject() : "");
                 row.createCell(2).setCellValue(req.getDescription() != null ? req.getDescription() : "");
