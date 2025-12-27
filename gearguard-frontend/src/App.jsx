@@ -9,6 +9,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/Dashboard';
+import AuditLogs from './pages/admin/AuditLogs';
 import ManagerDashboard from './pages/manager/Dashboard';
 import TechnicianDashboard from './pages/technician/Dashboard';
 import UserDashboard from './pages/user/Dashboard';
@@ -91,6 +92,7 @@ function AppContent() {
                                         <Route path="requests" element={<Requests />} />
                                         <Route path="calendar" element={<Calendar />} />
                                         <Route path="reports" element={<Reports />} />
+                                        <Route path="audit-logs" element={<AuditLogs />} />
                                         <Route path="profile" element={<Profile />} />
                                     </Routes>
                                 </main>

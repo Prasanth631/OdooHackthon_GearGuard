@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, Wrench, Users, ClipboardList, Calendar,
-    ChevronLeft, ChevronRight, LogOut, User, Building2, FileText
+    ChevronLeft, ChevronRight, LogOut, User, Building2, FileText, History
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,11 +19,12 @@ function Sidebar({ isOpen, onToggle, userRole }) {
             requests: { path: `${baseUrl}/requests`, label: 'Requests', icon: ClipboardList },
             calendar: { path: `${baseUrl}/calendar`, label: 'Calendar', icon: Calendar },
             reports: { path: `${baseUrl}/reports`, label: 'Reports', icon: FileText },
+            auditLogs: { path: `${baseUrl}/audit-logs`, label: 'Audit Logs', icon: History },
             profile: { path: `${baseUrl}/profile`, label: 'My Profile', icon: User }
         };
 
         const roleItems = {
-            ADMIN: ['dashboard', 'equipment', 'departments', 'teams', 'requests', 'calendar', 'reports', 'profile'],
+            ADMIN: ['dashboard', 'equipment', 'departments', 'teams', 'requests', 'calendar', 'reports', 'auditLogs', 'profile'],
             MANAGER: ['dashboard', 'equipment', 'departments', 'teams', 'requests', 'calendar', 'reports', 'profile'],
             TECHNICIAN: ['dashboard', 'requests', 'calendar', 'profile'],
             USER: ['dashboard', 'profile']
